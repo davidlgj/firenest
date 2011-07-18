@@ -5,8 +5,8 @@
  */
 
 #define XBEE_BAUD 9600
-#define CHANNELS 2
-#define THRESHHOLD 20
+#define CHANNELS 6
+#define THRESHHOLD 10
 #define LED_THRESHHOLD 100
 
 struct Channel {
@@ -36,8 +36,17 @@ void setup() {
     digitalWrite(channels[i].button_pin,HIGH); //enable internal 20K pullup
     
     pinMode(channels[i].led_pin,OUTPUT);
+    //blink leds a bit
+    digitalWrite(channels[i].led_pin,HIGH);
+    delay(200);
     digitalWrite(channels[i].led_pin,LOW);
   }
+  
+  //debug led
+  pinMode(13,OUTPUT);
+  digitalWrite(13,HIGH);
+  delay(500);
+  digitalWrite(13,LOW);
   
   Serial.begin(XBEE_BAUD);
 }
@@ -79,7 +88,8 @@ void loop() {
           //light led
           digitalWrite(channels[cc].led_pin,HIGH);
           channels[cc].led_state = m;
-                   
+ 
+          digitalWrite(13,HIGH);
       }
       
       if ((channels[i].state == 0 && val == LOW) || (channels[i].state == 2 && val == HIGH)) {
@@ -98,6 +108,7 @@ void loop() {
     //update led
     if (m - channels[i].led_state > LED_THRESHHOLD) {
       digitalWrite(channels[i].led_pin,LOW);
+      digitalWrite(13,LOW);         
       channels[i].led_state = 0;
     }
   } 
