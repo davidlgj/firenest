@@ -4,6 +4,8 @@
  * First button can also fire all channels in succesion
  */
 
+#include <XBee.h>
+
 #define XBEE_BAUD 9600
 #define CHANNELS 6
 #define THRESHHOLD 10
@@ -27,7 +29,17 @@ Channel channels[] = {
 };
 
 //used when using first button to fire all channels
-int channel_count = 0;
+uint8_t channel_count = 0;
+
+XBee xbee = XBee();
+
+uint8_t payload[] = { 0 };
+
+// SH + SL Address of receiving XBee
+XBeeAddress64 addr64 = XBeeAddress64(0x0013a200, 0x403141DA);
+ZBTxRequest zbTx = ZBTxRequest(addr64, payload, sizeof(payload));
+ZBTxStatusResponse txStatus = ZBTxStatusResponse();
+
 
 
 void setup() {
@@ -48,7 +60,8 @@ void setup() {
   delay(500);
   digitalWrite(13,LOW);
   
-  Serial.begin(XBEE_BAUD);
+  xbee.begin(XBEE_BAUD);
+
 }
 
 
@@ -66,7 +79,7 @@ void loop() {
   int val;
   int m;
   
-  for (int i= 0; i<CHANNELS; i++) {
+  for (uint8_t i= 0; i<CHANNELS; i++) {
     m = millis();
     
     if (channels[i].state == 0 || channels[i].state == 2) {
@@ -74,7 +87,7 @@ void loop() {
       
       if (channels[i].state == 0 && val == LOW) {
           //a press!, fire!
-          int cc = i;
+          uint8_t cc = i;
           //special case, we can fire all channels by firing the first button repeatably
           if (i == 0) {
             cc = channel_count;
@@ -82,14 +95,14 @@ void loop() {
           } 
           
           //fire!
-          //Serial.println(cc);
-          Serial.write('a'+cc);
+          payload[1] = cc;
+          xbee.send(zbTx);
           
-          //light led
           digitalWrite(channels[cc].led_pin,HIGH);
           channels[cc].led_state = m;
+        
  
-          digitalWrite(13,HIGH);
+          
       }
       
       if ((channels[i].state == 0 && val == LOW) || (channels[i].state == 2 && val == HIGH)) {
