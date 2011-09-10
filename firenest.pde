@@ -12,7 +12,7 @@
 //    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * firenest - firecrow transmitter code
+ * fireNest - fireCrow transmitter code
  * 6 buttons for 6 channnels and a led for each
  * First button can also fire all channels in succesion
  * Arduino Fio as board
