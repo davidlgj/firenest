@@ -19,7 +19,7 @@
  */
 
 #include <XBee.h>
-#include <NewSoftSerial.h>
+//#include <NewSoftSerial.h>
 
 #define XBEE_BAUD 9600
 #define CHANNELS 6
@@ -45,7 +45,7 @@ Channel channels[] = {
   {7,A2,0,0}
 };
 
-NewSoftSerial mySerial(12, 13);
+//NewSoftSerial mySerial(12, 13);
 
 //used when using first button to fire all channels
 uint8_t channel_count = 0;
@@ -72,8 +72,8 @@ AtCommandResponse atResponse = AtCommandResponse();
 
 void setup() {
   
-  mySerial.begin(4800);
-  mySerial.println("Hello world");
+  //mySerial.begin(4800);
+  //mySerial.println("Hello world");
   
   for (int i= 0; i<CHANNELS; i++) {
     pinMode(channels[i].button_pin,INPUT);
@@ -98,16 +98,20 @@ void setup() {
   discover();
   zbTx = ZBTxRequest(addr64, payload, sizeof(payload));
   
-  //turn off leds
-  clearLeds();
+  //send a no-op packet so that the xbees can do their magic and find each other
+  payload[0] = 254;
+  xbee.send(zbTx);
+  
+  //Flash all leds once so the user knows
+  flashAll(500);
 
-  mySerial.println("Discovered address");
-  mySerial.print("MSB: ");
-  mySerial.println(addr64.getMsb());
-  mySerial.println(addr64.getMsb()==0x0013a200?"Yes!":"NO");
-  mySerial.print("LSB: ");
-  mySerial.println(addr64.getLsb());
-    mySerial.println(addr64.getLsb()==0x403141DA?"Yes!":"NO");
+  //mySerial.println("Discovered address");
+  //mySerial.print("MSB: ");
+  //mySerial.println(addr64.getMsb());
+  //mySerial.println(addr64.getMsb()==0x0013a200?"Yes!":"NO");
+  //mySerial.print("LSB: ");
+  //mySerial.println(addr64.getLsb());
+  //mySerial.println(addr64.getLsb()==0x403141DA?"Yes!":"NO");
 }
 
 
@@ -180,7 +184,7 @@ void loop() {
 
 //discover target node
 void discover() {
-  mySerial.println("discover");
+  //mySerial.println("discover");
   //if we don't get a address we can't fire
   while (true) {
     //send node discovery
@@ -212,7 +216,7 @@ void discover() {
 }
 
 boolean checkNDResponse() { 
-  mySerial.println("checkNDResponse");
+  //mySerial.println("checkNDResponse");
   // wait a small bit so the animation looks good
   if (xbee.readPacket(ND_WAIT_TIME / 6)) {
     // got a response!
@@ -224,8 +228,8 @@ boolean checkNDResponse() {
       if (atResponse.isOk()) {
         if (atResponse.getCommand()[0] == atCmd[0] && atResponse.getCommand()[1] == atCmd[1] && atResponse.getValueLength() > 3) {
 
-          mySerial.println(pack(atResponse.getValue()[2],atResponse.getValue()[3],atResponse.getValue()[4],atResponse.getValue()[5]));          
-          mySerial.println(pack(atResponse.getValue()[6],atResponse.getValue()[7],atResponse.getValue()[8],atResponse.getValue()[9]));
+          //mySerial.println(pack(atResponse.getValue()[2],atResponse.getValue()[3],atResponse.getValue()[4],atResponse.getValue()[5]));          
+          //mySerial.println(pack(atResponse.getValue()[6],atResponse.getValue()[7],atResponse.getValue()[8],atResponse.getValue()[9]));
           
           addr64 = XBeeAddress64( pack(atResponse.getValue()[2],atResponse.getValue()[3],atResponse.getValue()[4],atResponse.getValue()[5]),pack(atResponse.getValue()[6],atResponse.getValue()[7],atResponse.getValue()[8],atResponse.getValue()[9]) );
           
@@ -270,10 +274,7 @@ void flashAll(int ms) {
   }
   
   delay(ms);
-  
-  for (int i=0;i<CHANNELS; i++) {
-    digitalWrite(channels[i].led_pin,LOW);
-  }
+  clearLeds();  
 }
 
 //clear all leds
